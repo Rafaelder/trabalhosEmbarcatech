@@ -9,8 +9,8 @@
 #include "lwip/netif.h"
 
 // Configurações de Wi-Fi
-#define WIFI_SSID "RODOLFO"
-#define WIFI_PASSWORD "elder2021"
+#define WIFI_SSID "nome"
+#define WIFI_PASSWORD "senha"
 
 // Definição dos pinos
 #define BUTTON1_PIN 5    // GPIO5 - Botão A
@@ -91,9 +91,10 @@ static err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, er
     char html[2048];
     snprintf(html, sizeof(html),
         "HTTP/1.1 200 OK\r\n"
-        "Content-Type: text/html\r\n"
+        "Content-Type: text/html; charset=UTF-8\r\n"
         "Connection: close\r\n\r\n"
         "<!DOCTYPE html><html><head>"
+        "<meta charset=\"UTF-8\">\n"
         "<title>BitDogLab Monitor</title>"
         "<meta http-equiv='refresh' content='1'>"
         "<style>"

@@ -9,8 +9,8 @@
 #include "lwip/netif.h"
 
 // Configurações de Wi-Fi
-#define WIFI_SSID "RODOLFO"
-#define WIFI_PASSWORD "elder2021"
+#define WIFI_SSID "nome"
+#define WIFI_PASSWORD "senha"
 
 // Definição dos pinos do joystick
 #define JOYSTICK_Y_PIN 26  // GPIO26 - VRy
@@ -86,11 +86,12 @@ static err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, er
     char html[1024];
     snprintf(html, sizeof(html),
              "HTTP/1.1 200 OK\r\n"
-             "Content-Type: text/html\r\n"
+             "Content-Type: text/html; charset=UTF-8\r\n"
              "\r\n"
              "<!DOCTYPE html>\n"
              "<html>\n"
              "<head>\n"
+             "<meta charset=\"UTF-8\">\n"
              "<title>Joystick Monitor</title>\n"
              "<style>\n"
              "body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }\n"
