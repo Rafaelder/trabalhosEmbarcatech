@@ -105,10 +105,13 @@ static err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, er
         ".temp {font-size: 24px; margin-top: 20px;}"
         "</style></head>"
         "<body>"
-        "<h1>Monitor BitDogLab</h1>"
-        "<div class='status %s'>Botão 1: %s</div>"
-        "<div class='status %s'>Botão 2: %s</div>"
-        "<div class='temp'>Temperatura: %.2f°C</div>"
+            "<h1>Monitor BitDogLab</h1>"
+            "<div class='status %s'>Botão 1: %s</div>"
+            "<div class='status %s'>Botão 2: %s</div>"
+            "<div class='temp'>Temperatura: %.2f°C</div>"
+            "<script>\n"
+                "setTimeout(() => { window.location.href = \"/\"; }, 100);\n"
+            "</script>\n"
         "</body></html>",
         current_state.button1_pressed ? "pressed" : "released",
         current_state.button1_pressed ? "Ativo" : "Inativo",
