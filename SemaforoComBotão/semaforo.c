@@ -18,6 +18,13 @@
 
 #define BUZZER_PIN 21 // Pino do buzzer
 
+// definições do tempo de cada fase do semáforo
+#define tVerde1 4000
+#define tVerde2 6000
+#define tAmarelo 3000
+#define tVermelho 4000
+#define tVermelhoAdicional 6000
+
 typedef enum estado_semaforo
 { // estados do semaforo
     VERDE_OBRIGATORIO,
@@ -89,14 +96,9 @@ int main()
     gpio_set_irq_enabled_with_callback(BOTAO_PEDESTRE_B, GPIO_IRQ_EDGE_FALL, true, &callback_botao);
     // Inicializa matriz de LEDs NeoPixel.
     neopixel_init(PIO_NEO_PIN);
-    //--- Animação de inicialização dos LEDs
-    for (int i = 0; i < LED_COUNT; i++)
-    {
-        npSetLED(i, 50, 50, 50); // Branco fraco
-    }
-    npWrite();
-    sleep_ms(500);
     npClear();
+    npWrite();
+    sleep_ms(1000); // Espera 1 segundo
     exibir_sinal_pedestre(false); // Passagem proibida
     npWrite();
     while (1)
@@ -105,10 +107,10 @@ int main()
         {
         case VERDE_OBRIGATORIO:
         {                                      // Fase verde obrigatória 
-            set_rgb_intensity(0.0f, 1.0f, 0.0f); // Verde a 30% de intensidade
+            set_rgb_intensity(0.0f, 0.5f, 0.0f); // Verde a 30% de intensidade
 
             uint32_t start = to_ms_since_boot(get_absolute_time());
-            while (to_ms_since_boot(get_absolute_time()) - start < 10000); 
+            while (to_ms_since_boot(get_absolute_time()) - start < tVerde1); // 5 segundos de verde
 
             // Passa para fase verde opcional ou amarelo(caso tenha solicitação)
             if (solicitacao_pedestre)
@@ -126,9 +128,8 @@ int main()
             // Fase verde que permite interrupções (segundos verificando botões, pedestre pode adiantar amarelo a qualquer momento)
             
             // Se receber solicitação durante fase opcional, muda para amarelo mais cedo
-            if (check_button_during_delay(10000))
+            if (check_button_during_delay(tVerde2))
             {
-                sleep_ms(1000); //  segundos de verde antes de amarelo, pra evitar mudança brusca
                 estado_atual = AMARELO;
             }
             else
@@ -138,29 +139,27 @@ int main()
             break;
         }
         case AMARELO:
-            set_rgb_intensity(1.0f, 1.0f, 0.0f); // Amarelo (vermelho + verde a 30%)
-            sleep_ms(3000);
+            set_rgb_intensity(0.5f, 0.5f, 0.0f); // Amarelo (vermelho + verde a 30%)
+            sleep_ms(tAmarelo);
             estado_atual = VERMELHO;
             break;
         case VERMELHO:
-        set_rgb_intensity(1.0f, 0.0f, 0.0f); // Vermelho a 30% de intensidade
-            exibir_sinal_pedestre(true); // Pedestre pode atravessar
-            // Três bips curtos (sinal aberto)
+        set_rgb_intensity(0.5f, 0.0f, 0.0f); // Vermelho a 30% de intensidade
+            // Três bips curtos (sinal aberto) (600ms)
             buzzer_beep(1000, 200);
             sleep_ms(100);
             buzzer_beep(1000, 200);
             sleep_ms(100);
             buzzer_beep(1000, 200);
-            sleep_ms(18200);           
+            exibir_sinal_pedestre(true); // Pedestre pode atravessar  
+            sleep_ms(tVermelho);           
             if (solicitacao_pedestre)
             {
                 solicitacao_pedestre = false; // Limpa a solicitação
-                sleep_ms(5000);               // tempo adicional para pedestre
+                sleep_ms(tVermelhoAdicional);               // tempo adicional para pedestre
             }
-            
-            
             exibir_sinal_pedestre(false); // Passagem proibida //fecha antes do semáforo mudar
-            buzzer_beep(500, 1000); // Um bip longo (sinal fechado) /tempo de seguranca para o sinal de pedestre
+            buzzer_beep(500, 800); // Um bip longo (sinal fechado) /tempo de seguranca para o sinal de pedestre
             estado_atual = VERDE_OBRIGATORIO;
             break;
         }
@@ -218,9 +217,9 @@ void set_rgb_intensity(float red, float green, float blue) {
     pwm_set_wrap(blue_slice, 999);
 
     // Aplica 50% de intensidade (0.5 * 1000 = 500)
-    pwm_set_chan_level(red_slice, red_channel, (uint16_t)(red * 1000 * 0.5f));
-    pwm_set_chan_level(green_slice, green_channel, (uint16_t)(green * 1000 * 0.5f));
-    pwm_set_chan_level(blue_slice, blue_channel, (uint16_t)(blue * 1000 * 0.5f));
+    pwm_set_chan_level(red_slice, red_channel, (uint16_t)(red * 1000 * 1.0f));
+    pwm_set_chan_level(green_slice, green_channel, (uint16_t)(green * 1000 * 1.0f));
+    pwm_set_chan_level(blue_slice, blue_channel, (uint16_t)(blue * 1000 * 1.0f));
 
     // Habilita os canais PWM
     pwm_set_enabled(red_slice, true);
@@ -360,6 +359,7 @@ void buzzer_set_freq(int frequencia) {
     pwm_init(buzzer_slice, &config, true);
     pwm_set_chan_level(buzzer_slice, buzzer_channel, wrap / 2); // 50% duty cycle
 }
+
 void buzzer_beep(int frequencia, int duration_ms) {
     buzzer_set_freq(frequencia);
     pwm_set_enabled(buzzer_slice, true);
